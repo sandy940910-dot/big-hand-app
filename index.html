@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>大手拉小手 - 師生聯絡管理系統</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: #FFF9F0; min-height: 100vh; color: #3a2e2e; }
+
+  :root {
+    --pink: #F4A7B9;
+    --pink-light: #FCE4EC;
+    --pink-dark: #C2185B;
+    --green: #A8D5A2;
+    --green-light: #E8F5E9;
+    --green-dark: #2E7D32;
+    --yellow: #FFD580;
+    --yellow-light: #FFFDE7;
+    --blue: #90CAF9;
+    --blue-light: #E3F2FD;
+    --orange: #FFAB76;
+    --orange-light: #FFF3E0;
+    --purple: #CE93D8;
+    --purple-light: #F3E5F5;
+    --bg: #FFF9F0;
+    --card: #FFFFFF;
+    --text: #3a2e2e;
+    --text-muted: #8a7a7a;
+    --border: #F0E0D0;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --shadow: 0 4px 16px rgba(180,120,100,0.10);
+  }
+
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); position: relative; overflow: hidden; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #FCE4EC 0%, #FFF9C4 50%, #E8F5E9 100%); padding: 18px 20px 14px; position: sticky; top: 0; z-index: 10; border-bottom: 2px dashed #F4A7B9; }
+  .header-inner { display: flex; align-items: center; gap: 10px; }
+  .header-back { background: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); flex-shrink: 0; }
+  .header-title { font-size: 20px; font-weight: 800; color: #C2185B; letter-spacing: 0.5px; }
+  .header-sub { font-size: 13px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+  .header-action { background: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); flex-shrink: 0; margin-left: auto; }
+
+  .deco { font-size: 28px; }
+
+  /* Screen */
+  .screen { display: none; padding: 20px; animation: fadeIn 0.25s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+  /* Home screen */
+  .home-hero { text-align: center; padding: 24px 0 16px; }
+  .home-animals { font-size: 52px; margin-bottom: 8px; display: block; }
+  .home-title { font-size: 28px; font-weight: 800; color: #C2185B; line-height: 1.2; }
+  .home-subtitle { font-size: 14px; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
+
+  .search-bar { display: flex; gap: 8px; margin: 16px 0; }
+  .search-input { flex: 1; border: 2px solid var(--border); border-radius: 50px; padding: 10px 16px; font-family: inherit; font-size: 14px; background: white; outline: none; }
+  .search-input:focus { border-color: var(--pink); }
+  .add-btn { background: var(--pink); border: none; border-radius: 50px; padding: 10px 18px; font-family: inherit; font-size: 14px; font-weight: 700; color: white; cursor: pointer; white-space: nowrap; }
+  .add-btn:hover { background: #e9819a; }
+
+  /* Student list */
+  .student-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .student-card { background: white; border-radius: var(--radius); border: 2px solid var(--border); padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.18s; box-shadow: var(--shadow); }
+  .student-card:hover { border-color: var(--pink); transform: translateY(-2px); }
+  .student-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--pink-light); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; border: 2px solid var(--border); overflow: hidden; }
+  .student-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .student-info { flex: 1; }
+  .student-name { font-size: 16px; font-weight: 800; color: var(--text); }
+  .student-num { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+  .student-tags { display: flex; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+  .tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+  .tag-parent { background: var(--pink-light); color: var(--pink-dark); }
+  .tag-student { background: var(--green-light); color: var(--green-dark); }
+  .tag-other { background: var(--yellow-light); color: #E65100; }
+  .student-arrow { font-size: 18px; color: var(--text-muted); }
+
+  /* Student detail */
+  .profile-header { display: flex; flex-direction: column; align-items: center; padding: 16px 0 20px; background: linear-gradient(135deg, #FCE4EC 0%, #FFF9C4 100%); border-radius: var(--radius); margin-bottom: 20px; }
+  .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: var(--pink-light); display: flex; align-items: center; justify-content: center; font-size: 40px; border: 3px solid white; box-shadow: var(--shadow); cursor: pointer; overflow: hidden; position: relative; }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-avatar-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.3); color: white; font-size: 11px; text-align: center; padding: 4px; font-weight: 700; }
+  .profile-name { font-size: 22px; font-weight: 800; color: #C2185B; margin-top: 12px; }
+  .profile-num { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .action-btn { background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 16px 8px; text-align: center; cursor: pointer; transition: all 0.18s; box-shadow: var(--shadow); }
+  .action-btn:hover { transform: translateY(-2px); }
+  .action-btn.pink { border-color: var(--pink); background: var(--pink-light); }
+  .action-btn.green { border-color: var(--green); background: var(--green-light); }
+  .action-btn.yellow { border-color: var(--yellow); background: var(--yellow-light); }
+  .action-icon { font-size: 28px; display: block; }
+  .action-label { font-size: 12px; font-weight: 800; color: var(--text); margin-top: 6px; line-height: 1.3; }
+
+  /* Record list in detail */
+  .section-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .record-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .record-item { background: white; border-radius: var(--radius-sm); border: 2px solid var(--border); padding: 12px 14px; cursor: pointer; }
+  .record-item:hover { border-color: var(--pink); }
+  .record-date { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .record-subject { font-size: 14px; font-weight: 800; color: var(--text); margin-top: 3px; }
+  .record-preview { font-size: 13px; color: var(--text-muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .empty-state { text-align: center; padding: 24px 0; color: var(--text-muted); font-size: 14px; font-weight: 600; }
+
+  /* Form UI */
+  .form-type-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
+  .type-btn { flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 50px; background: white; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; }
+  .type-btn.active.green { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+  .type-btn.active.blue { border-color: var(--blue); background: var(--blue-light); color: #1565C0; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 7px; display: block; }
+  .form-input, .form-textarea, .form-select { width: 100%; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; font-family: inherit; font-size: 14px; background: white; outline: none; color: var(--text); }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--pink); }
+  .form-textarea { min-height: 80px; resize: vertical; }
+
+  .checkbox-group { display: flex; flex-direction: column; gap: 8px; background: white; border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px; }
+  .checkbox-item { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+  .checkbox-item:last-child { margin-bottom: 0; }
+  .checkbox-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pink-dark); cursor: pointer; }
+  .checkbox-item label { font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; }
+  .other-input { flex: 1; border: 2px solid var(--border); border-radius: 8px; padding: 6px 10px; font-family: inherit; font-size: 13px; outline: none; min-width: 120px; }
+  .other-input:focus { border-color: var(--pink); }
+  .sub-indent-group { display: none; width: 100%; padding-left: 28px; margin-top: 6px; margin-bottom: 10px; flex-direction: column; gap: 6px; }
+
+  /* Hashtags */
+  .hashtag-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .hashtag-pill { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: #FFF; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .hashtag-pill:hover { background: var(--pink-light); border-color: var(--pink); color: var(--pink-dark); }
+
+  /* Export / Share box */
+  .export-box { background: white; border: 2px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 12px; margin-bottom: 24px; box-shadow: var(--shadow); }
+  .export-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .export-btn { padding: 10px; border: none; border-radius: 50px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .export-btn.btn-line { background: #06C755; color: white; }
+  .export-btn.btn-file { background: #607D8B; color: white; }
+
+  .save-btn { width: 100%; background: linear-gradient(135deg, #F4A7B9, #C2185B); border: none; border-radius: 50px; padding: 14px; font-family: inherit; font-size: 16px; font-weight: 800; color: white; cursor: pointer; margin-top: 8px; letter-spacing: 0.5px; }
+  .save-btn:hover { opacity: 0.9; }
+
+  .add-student-form { background: white; border-radius: var(--radius); border: 2px solid var(--border); padding: 20px; }
+  .datetime-row { display: flex; gap: 10px; }
+  .datetime-row .form-group { flex: 1; }
+
+  .subject-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .subject-pill { display: flex; align-items: center; gap: 6px; background: var(--green-light); border: 2px solid var(--green); border-radius: 50px; padding: 6px 12px; cursor: pointer; }
+  .subject-pill input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--green-dark); }
+  .subject-pill label { font-size: 13px; font-weight: 700; color: var(--green-dark); cursor: pointer; }
+
+  input[type="file"] { display: none; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="toast" id="toast">✓ 儲存成功！</div>
+
+  <div class="screen active" id="screen-home">
+    <div class="header">
+      <div class="header-inner">
+        <span class="deco">🐻</span>
+        <div>
+          <div class="header-title">大手拉小手</div>
+          <div class="header-sub">師生聯絡管理系統</div>
+        </div>
+        <button class="header-action" onclick="goTo('screen-settings')">⚙️</button>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div class="home-hero">
+        <span class="home-animals">🐻🤝🐰</span>
+        <div class="home-title">歡迎回來！</div>
+        <div class="home-subtitle">今天也要記錄美好的教育瞬間 ✨</div>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" type="text" placeholder="🔍 搜尋座號或姓名..." id="search-input" oninput="filterStudents()">
+        <button class="add-btn" onclick="goTo('screen-add-student')">+ 新增學生</button>
+      </div>
+      
+      <div style="font-size:14px; font-weight:800; color:var(--text); margin-bottom:8px; margin-top:10px;">🐾 學生名單總覽</div>
+      <div class="student-list" id="student-list"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-settings">
+    <div class="header">
+      <div class="header-inner">
+        <button class="header-back" onclick="goTo('screen-home')">←</button>
+        <div>
+          <div class="header-title">系統設定</div>
+          <div class="header-sub">設定與雲端串接 API</div>
+        </div>
+        <span class="deco" style="margin-left:auto">⚙️</span>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div style="background:white; border-radius:var(--radius); border:2px solid var(--border); padding:16px; margin-bottom:16px;">
+        <h4 style="margin-bottom:6px; color:var(--pink-dark)">🌐 Google Sheet 雲端同步設定</h4>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">將您的 Google Apps Script 部署網址貼在下方，即可將紀錄同步上傳到試算表。</p>
+        <div class="form-group">
+          <label class="form-label">Apps Script 網頁應用程式 URL</label>
+          <input class="form-input" type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+      </div>
+
+      <div style="background:white; border-radius:var(--radius); border:2px solid var(--border); padding:16px; margin-bottom:16px;">
+        <h4 style="margin-bottom:12px; color:var(--pink-dark)">📅 學期時間區間設定</h4>
+        <div id="semester-settings-container"></div>
+      </div>
+      <button class="save-btn" onclick="saveSettings()">🐾 儲存設定變更</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-add-student">
+    <div class="header">
+      <div class="header-inner">
+        <button class="header-back" onclick="goTo('screen-home')">←</button>
+        <div>
+          <div class="header-title">新增學生</div>
+          <div class="header-sub">建立學生資料</div>
+        </div>
+        <span class="deco" style="margin-left:auto">🐱</span>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div class="add-student-form">
+        <div style="display:flex; gap:16px; margin-bottom:16px; align-items:flex-start">
+          <div class="profile-avatar" style="width:72px;height:72px;font-size:32px;flex-shrink:0" onclick="document.getElementById('add-photo-input').click()">
+            <span id="add-avatar-preview">🐱</span>
+            <div class="profile-avatar-overlay">相片</div>
+          </div>
+          <input type="file" id="add-photo-input" accept="image/*" onchange="previewAddPhoto(event)">
+          <div style="flex:1">
+            <div class="form-group" style="margin-bottom:10px">
+              <label class="form-label">座號 *</label>
+              <input class="form-input" type="number" id="add-num" placeholder="01" min="1" max="60">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">姓名 *</label>
+              <input class="form-input" type="text" id="add-name" placeholder="王小明">
+            </div>
+          </div>
+        </div>
+        <button class="save-btn" onclick="addStudent()">🐾 建立學生資料</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-student">
+    <div class="header">
+      <div class="header-inner">
+        <button class="header-back" onclick="goTo('screen-home')">←</button>
+        <div>
+          <div class="header-title" id="detail-title">學生資料</div>
+          <div class="header-sub" id="detail-sub">查看紀錄</div>
+        </div>
+        <span class="deco" style="margin-left:auto">📋</span>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div class="profile-header">
+        <div class="profile-avatar" onclick="document.getElementById('photo-input').click()">
+          <img id="profile-photo" src="" alt="" style="display:none">
+          <span id="profile-emoji">🐱</span>
+          <div class="profile-avatar-overlay">點擊換照片</div>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" onchange="uploadPhoto(event)">
+        <div class="profile-name" id="profile-name">學生姓名</div>
+        <div class="profile-num" id="profile-num">座號 00</div>
+      </div>
+
+      <div class="action-grid">
+        <div class="action-btn pink" onclick="goTo('screen-parent')">
+          <span class="action-icon">💬</span>
+          <div class="action-label">家長對話紀錄</div>
+        </div>
+        <div class="action-btn green" onclick="goTo('screen-interaction')">
+          <span class="action-icon">📚</span>
+          <div class="action-label">學生互動紀錄</div>
+        </div>
+        <div class="action-btn yellow" onclick="goTo('screen-other')">
+          <span class="action-icon">⭐</span>
+          <div class="action-label">其他表現</div>
+        </div>
+      </div>
+
+      <div class="export-box">
+        <div class="section-title" style="margin-bottom:8px">📦 匯出與分享資料</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label">選擇匯出範圍：</label>
+          <select class="form-select" id="export-semester-select">
+            <option value="all">全部學期總覽</option>
+            <option value="7-1">七年級 上學期</option>
+            <option value="7-2">七年級 下學期</option>
+            <option value="8-1">八年級 上學期</option>
+            <option value="8-2">八年級 下學期</option>
+            <option value="9-1">九年級 上學期</option>
+            <option value="9-2">九年級 下學期</option>
+          </select>
+        </div>
+        <div class="export-actions">
+          <button class="export-btn btn-line" onclick="shareToLine()">🟢 複製 LINE 文字</button>
+          <button class="export-btn btn-file" onclick="exportJSONData()">💾 匯出備份檔案</button>
+        </div>
+      </div>
+
+      <div class="section-title">💬 最新家長對話</div>
+      <div id="parent-preview" class="record-list"></div>
+
+      <div class="section-title">📚 最新學生互動</div>
+      <div id="interaction-preview" class="record-list"></div>
+
+      <div class="section-title">⭐ 其他表現</div>
+      <div id="other-preview" class="record-list"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-parent">
+    <div class="header">
+      <div class="header-inner">
+        <button class="header-back" onclick="goTo('screen-student')">←</button>
+        <div>
+          <div class="header-title">家長對話紀錄</div>
+          <div class="header-sub" id="parent-student-name">新增紀錄</div>
+        </div>
+        <span class="deco" style="margin-left:auto">💬</span>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div class="datetime-row">
+        <div class="form-group">
+          <label class="form-label">📅 日期</label>
+          <input class="form-input" type="date" id="parent-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">⏰ 時間</label>
+          <input class="form-input" type="time" id="parent-time">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📝 主旨</label>
+        <input class="form-input" type="text" id="parent-subject" placeholder="例：學習態度問題討論">
+        <div class="hashtag-container" data-target="parent-subject" data-tags="學習態度,常規問題,衝突討論,親職溝通,輔導諮商"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">👥 家長角色（可複選）</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item"><input type="checkbox" id="role-homeroom"><label for="role-homeroom">班導</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role-father"><label for="role-father">父親</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role-mother"><label for="role-mother">母親</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role-counselor"><label for="role-counselor">輔導老師</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="role-special"><label for="role-special">特教老師</label></div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="role-other">
+            <label for="role-other">其他</label>
+            <input class="other-input" type="text" id="role-other-text" placeholder="請填寫...">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">💭 對話內容</label>
+        <textarea class="form-textarea" id="parent-content" placeholder="紀錄對話的主要內容..."></textarea>
+        <div class="hashtag-container" data-target="parent-content" data-tags="課堂分心,遲到早退,作業未交,情緒不穩,同儕排擠,反抗權威"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">✅ 結論</label>
+        <textarea class="form-textarea" id="parent-conclusion" placeholder="此次對話的結論..."></textarea>
+        <div class="hashtag-container" data-target="parent-conclusion" data-tags="密切配合觀察,每日聯絡簿監督,配合校方諮商,返家予以叮嚀,建立正向獎勵"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🔔 後續追蹤</label>
+        <textarea class="form-textarea" id="parent-followup" placeholder="需要後續追蹤的事項..."></textarea>
+      </div>
+
+      <button class="save-btn" onclick="saveParentRecord()">🐾 儲存紀錄</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-interaction">
+    <div class="header">
+      <div class="header-inner">
+        <button class="header-back" onclick="goTo('screen-student')">←</button>
+        <div>
+          <div class="header-title">學生互動紀錄</div>
+          <div class="header-sub" id="interaction-student-name">新增紀錄</div>
+        </div>
+        <span class="deco" style="margin-left:auto">📚</span>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div class="form-type-toggle">
+        <button class="type-btn active green" id="type-study" onclick="setInteractionType('study')">📚 學習</button>
+        <button class="type-btn blue" id="type-life" onclick="setInteractionType('life')">🌱 生活</button>
+      </div>
+
+      <div class="datetime-row">
+        <div class="form-group">
+          <label class="form-label">📅 日期</label>
+          <input class="form-input" type="date" id="inter-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">⏰ 時間</label>
+          <input class="form-input" type="time" id="inter-time">
+        </div>
+      </div>
+
+      <div id="study-only-section">
+        <div class="form-group">
+          <label class="form-label">📖 科目（可複選）</label>
+          <div class="subject-pills">
+            <div class="subject-pill" id="pill-chinese"><input type="checkbox" id="sub-chinese"><label for="sub-chinese">國文</label></div>
+            <div class="subject-pill" id="pill-english"><input type="checkbox" id="sub-english"><label for="sub-english">英文</label></div>
+            <div class="subject-pill" id="pill-math"><input type="checkbox" id="sub-math"><label for="sub-math">數學</label></div>
+            <div class="subject-pill" id="pill-science"><input type="checkbox" id="sub-science"><label for="sub-science">自然</label></div>
+            <div class="subject-pill" id="pill-social"><input type="checkbox" id="sub-social"><label for="sub-social">社會</label></div>
+            <div class="subject-pill" id="pill-pe"><input type="checkbox" id="sub-pe"><label for="sub-pe">體育</label></div>
+            <div class="subject-pill" id="pill-art"><input type="checkbox" id="sub-art"><label for="sub-art">美術</label></div>
+            <div class="subject-pill" id="pill-music"><input type="checkbox" id="sub-music"><label for="sub-music">音樂</label></div>
+            <div class="subject-pill" id="pill-other-sub"><input type="checkbox" id="sub-other"><label for="sub-other">其他</label></div>
+          </div>
+          <input class="form-input" type="text" id="sub-other-text" placeholder="其他科目..." style="margin-top:8px;display:none">
+        </div>
+      </div>
+
+      <div id="life-only-section" style="display:none">
+        <div class="form-group">
+          <label class="form-label">⚠️ 問題類型（可複選）</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="prob-routine" onchange="toggleSubIndent('sub-routine-group', this.checked)">
+              <label for="prob-routine">違反生活常規</label>
+              <div class="sub-indent-group" id="sub-routine-group">
+                <div class="checkbox-item"><input type="checkbox" id="prob-sub-lazy"><label for="prob-sub-lazy">打掃消極</label></div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="prob-sub-routine-other">
+                  <label for="prob-sub-routine-other">其他說明：</label>
+                  <input class="other-input" type="text" id="prob-sub-routine-text" placeholder="輸入常規狀況...">
+                </div>
+              </div>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="prob-rules" onchange="toggleSubIndent('sub-rules-group', this.checked)">
+              <label for="prob-rules">違反校規</label>
+              <div class="sub-indent-group" id="sub-rules-group">
+                <div class="checkbox-item">
+                  <input class="other-input" type="text" id="prob-sub-rules-text" placeholder="請填寫違反校規事項..." style="width:100%">
+                </div>
+              </div>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="prob-behavior" onchange="toggleSubIndent('sub-behavior-group', this.checked)">
+              <label for="prob-behavior">不當行為</label>
+              <div class="sub-indent-group" id="sub-behavior-group">
+                <div class="checkbox-item"><input type="checkbox" id="prob-sub-gender"><label for="prob-sub-gender">性平爭議</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="prob-sub-injury"><label for="prob-sub-injury">自傷</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="prob-sub-suicide"><label for="prob-sub-suicide">自殺傾向</label></div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="prob-sub-behavior-other">
+                  <label for="prob-sub-behavior-other">其他：</label>
+                  <input class="other-input" type="text" id="prob-sub-behavior-text" placeholder="輸入其他不當行為...">
+                </div>
+              </div>
+            </div>
+            <div class="checkbox-item"><input type="checkbox" id="prob-conflict"><label for="prob-conflict">人際衝突</label></div>
+            <div class="checkbox-item"><input type="checkbox" id="prob-family"><label for="prob-family">親子關係</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📝 主旨</label>
+        <input class="form-input" type="text" id="inter-subject" placeholder="例：課堂表現討論">
+        <div class="hashtag-container" data-target="inter-subject" data-tags="作業未交,課堂違規,午休口角,打掃缺席,同儕小團體,輔導晤談"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">💭 互動內容</label>
+        <textarea class="form-textarea" id="inter-content" placeholder="紀錄互動的主要內容..."></textarea>
+        <div class="hashtag-container" data-target="inter-content" data-tags="口頭警告不理,與同學起衝突,打掃時間聊天,上課睡覺叫不醒,私下哭訴委屈,拒絕與人溝通"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">✅ 結論</label>
+        <textarea class="form-textarea" id="inter-conclusion" placeholder="此次互動的結論..."></textarea>
+        <div class="hashtag-container" data-target="inter-conclusion" data-tags="學生當場道歉,約定今日補改,暫時調離座位,移請輔導室協助,通知家長處理"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🔔 後續追蹤</label>
+        <textarea class="form-textarea" id="inter-followup" placeholder="需要後續追蹤的事項..."></textarea>
+      </div>
+
+      <button class="save-btn" onclick="saveInteractionRecord()">🐾 儲存紀錄</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-other">
+    <div class="header">
+      <div class="header-inner">
+        <button class="header-back" onclick="goTo('screen-student')">←</button>
+        <div>
+          <div class="header-title">其他表現</div>
+          <div class="header-sub" id="other-student-name">新增紀錄</div>
+        </div>
+        <span class="deco" style="margin-left:auto">⭐</span>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div class="datetime-row">
+        <div class="form-group">
+          <label class="form-label">📅 日期</label>
+          <input class="form-input" type="date" id="other-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">⏰ 時間</label>
+          <input class="form-input" type="time" id="other-time">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📝 主旨</label>
+        <input class="form-input" type="text" id="other-subject" placeholder="例：班際競賽獲獎">
+        <div class="hashtag-container" data-target="other-subject" data-tags="榮譽嘉獎,體育競賽,美術獲獎,熱心服務,進步楷模"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">💭 內容描述</label>
+        <textarea class="form-textarea" id="other-content" placeholder="詳細描述表現內容..."></textarea>
+        <div class="hashtag-container" data-target="other-content" data-tags="協助同學打掃,代表班級出賽獲獎,段考成績大幅進步,積極維護秩序"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">✅ 結論</label>
+        <textarea class="form-textarea" id="other-conclusion" placeholder="評估與結論..."></textarea>
+        <div class="hashtag-container" data-target="other-conclusion" data-tags="公開表揚,記嘉獎乙次,發放榮譽卡,列入楷模名單"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🔔 後續追蹤</label>
+        <textarea class="form-textarea" id="other-followup" placeholder="後續追蹤事項..."></textarea>
+      </div>
+      <button class="save-btn" onclick="saveOtherRecord()">🐾 儲存紀錄</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const EMOJIS = ['🐱','🐰','🐻','🐼','🐸','🐨','🦊','🐙','🐧','🦁','🐮','🐹'];
+
+let semesterSettings = {
+  '7-1': { start: '2025-08-30', end: '2026-01-20' },
+  '7-2': { start: '2026-02-10', end: '2026-06-30' },
+  '8-1': { start: '2026-08-30', end: '2027-01-20' },
+  '8-2': { start: '2027-02-10', end: '2027-06-30' },
+  '9-1': { start: '2027-08-30', end: '2028-01-20' },
+  '9-2': { start: '2028-02-10', end: '2028-06-30' }
+};
+
+let state = { students: [], current: null, interType: 'study', gasUrl: '' };
+
+function getEmoji(id) { return EMOJIS[id % EMOJIS.length]; }
+
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const targetScreen = document.getElementById(screenId);
+  if (targetScreen) targetScreen.classList.add('active');
+  
+  if (screenId === 'screen-settings') {
+    renderSemesterSettings();
+  } else if (screenId === 'screen-parent') { 
+    clearParentForm(); 
+    if (state.current) document.getElementById('parent-student-name').textContent = state.current.name; 
+  } else if (screenId === 'screen-interaction') { 
+    clearInterForm(); 
+    if (state.current) document.getElementById('interaction-student-name').textContent = state.current.name; 
+  } else if (screenId === 'screen-other') { 
+    clearOtherForm(); 
+    if (state.current) document.getElementById('other-student-name').textContent = state.current.name; 
+  }
+  window.scrollTo(0,0);
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  if (t) {
+    t.textContent = msg;
+    t.className = isError ? 'toast show error' : 'toast show';
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+}
+
+function syncToGoogleSheet(recordType, recordData) {
+  if (!state.gasUrl) return;
+  const payload = {
+    recordType: recordType,
+    studentId: state.current.id,
+    studentNum: state.current.num,
+    studentName: state.current.name,
+    semester: getSemesterByDate(recordData.date),
+    ...recordData
+  };
+  fetch(state.gasUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => { showToast('✓ 資料已即時同步至雲端 Sheet！'); })
+  .catch(err => { showToast('⚠️ 本地已儲存，但雲端同步失敗', true); });
+}
+
+function filterStudents() {
+  const searchInput = document.getElementById('search-input');
+  if (!searchInput) return;
+  const q = searchInput.value.trim().toLowerCase();
+  renderStudentList(q);
+}
+
+function renderStudentList(filter) {
+  const list = document.getElementById('student-list');
+  if (!list) return;
+  
+  let students = state.students;
+  if (filter) {
+    students = students.filter(s => s.name.toLowerCase().includes(filter) || String(s.num).includes(filter));
+  }
+  
+  if (!students || students.length === 0) {
+    list.innerHTML = '<div class="empty-state">🐾 沒有找到對應學生，點選「新增學生」開始吧！</div>';
+    return;
+  }
+  
+  let htmlContent = '';
+  for(let i=0; i<students.length; i++) {
+    let s = students[i];
+    const pCount = (s.parentRecords||[]).length;
+    const iCount = (s.interactionRecords||[]).length;
+    const oCount = (s.otherRecords||[]).length;
+    const avatarHtml = s.photo
+      ? `<div class="student-avatar"><img src="${s.photo}" alt=""></div>`
+      : `<div class="student-avatar">${getEmoji(s.id)}</div>`;
+        
+    htmlContent += `<div class="student-card" onclick="openStudent(${s.id})">
+      ${avatarHtml}
+      <div class="student-info">
+        <div class="student-name">${String(s.num).padStart(2,'0')} ${s.name}</div>
+        <div class="student-num">座號 ${String(s.num).padStart(2,'0')}</div>
+        <div class="student-tags">
+          ${pCount?`<span class="tag tag-parent">💬 家長 ${pCount}</span>`:''}
+          ${iCount?`<span class="tag tag-student">📚 互動 ${iCount}</span>`:''}
+          ${oCount?`<span class="tag tag-other">⭐ 表現 ${oCount}</span>`:''}
+          ${!pCount&&!iCount&&!oCount?'<span class="tag" style="background:#f5f5f5;color:#999">尚無紀錄</span>':''}
+        </div>
+      </div>
+      <span class="student-arrow">›</span>
+    </div>`;
+  }
+  list.innerHTML = htmlContent;
+}
+
+function addStudent() {
+  const numInput = document.getElementById('add-num');
+  const nameInput = document.getElementById('add-name');
+  if (!numInput || !nameInput) return;
+
+  const num = parseInt(numInput.value);
+  const name = nameInput.value.trim();
+  if (!num || !name) { showToast('⚠️ 請填寫座號和姓名', true); return; }
+  
+  const sId = Date.now();
+  state.students.push({ id: sId, num: num, name: name, photo: window._addPhotoData||null, parentRecords:[], interactionRecords:[], otherRecords:[] });
+  state.students.sort((a,b) => a.num - b.num);
+  
+  numInput.value = '';
+  nameInput.value = '';
+  const preview = document.getElementById('add-avatar-preview');
+  if (preview) preview.textContent = '🐱';
+  window._addPhotoData = null;
+  
+  renderStudentList();
+  showToast('🐾 學生資料已建立！');
+  goTo('screen-home');
+}
+
+function previewAddPhoto(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    window._addPhotoData = ev.target.result;
+    document.getElementById('add-avatar-preview').innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function openStudent(id) {
+  const s = state.students.find(x => x.id === id);
+  if (!s) return;
+  state.current = s;
+  document.getElementById('detail-title').textContent = s.name;
+  document.getElementById('detail-sub').textContent = `座號 ${String(s.num).padStart(2,'0')}`;
+  document.getElementById('profile-name').textContent = s.name;
+  document.getElementById('profile-num').textContent = `座號 ${String(s.num).padStart(2,'0')}`;
+  const photo = document.getElementById('profile-photo');
+  const emoji = document.getElementById('profile-emoji');
+  if (s.photo) { photo.src = s.photo; photo.style.display='block'; emoji.style.display='none'; }
+  else { photo.style.display='none'; emoji.style.display='block'; emoji.textContent = getEmoji(s.id); }
+  renderPreviewRecords();
+  goTo('screen-student');
+}
+
+function renderPreviewRecords() {
+  const s = state.current;
+  if (!s) return;
+  renderPreview('parent-preview', s.parentRecords, '💬 尚無家長對話紀錄');
+  renderPreview('interaction-preview', s.interactionRecords, '📚 尚無學生互動紀錄');
+  renderPreview('other-preview', s.otherRecords, '⭐ 尚無其他表現紀錄');
+}
+
+function renderPreview(containerId, records, emptyMsg) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!records || !records.length) { el.innerHTML = `<div class="empty-state">${emptyMsg}</div>`; return; }
+  
+  let htmlStr = '';
+  const displayRecords = records.slice(-3).reverse();
+  for(let i=0; i<displayRecords.length; i++) {
+    let r = displayRecords[i];
+    htmlStr += `<div class="record-item">
+      <div class="record-date">${r.date||''} ${r.time||''} ${r.type ? (r.type === 'study' ? '· 學習' : '· 生活') : ''}  </div>
+      <div class="record-subject">${r.subject||'（無主旨）'}</div>
+      <div class="record-preview">${r.content||''}</div>
+    </div>`;
+  }
+  el.innerHTML = htmlStr;
+}
+
+function uploadPhoto(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    if(state.current) {
+      state.current.photo = ev.target.result;
+      const photo = document.getElementById('profile-photo');
+      photo.src = ev.target.result; photo.style.display='block';
+      document.getElementById('profile-emoji').style.display='none';
+      renderStudentList();
+      showToast('📸 照片已更新！');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// 核心修正：切換互動紀錄類型時，不論學習或生活都移除了相關角色欄位
+function setInteractionType(type) {
+  state.interType = type;
+  document.getElementById('type-study').className = 'type-btn ' + (type==='study'?'active green':'');
+  document.getElementById('type-life').className = 'type-btn ' + (type==='life'?'active blue':'');
+  
+  document.getElementById('study-only-section').style.display = type==='study' ? 'block' : 'none';
+  document.getElementById('life-only-section').style.display = type==='life' ? 'block' : 'none';
+}
+
+function toggleSubIndent(id, isShow) {
+  const el = document.getElementById(id);
+  if(el) el.style.display = isShow ? 'flex' : 'none';
+}
+
+function getCheckedRoles(prefix) {
+  const roles = ['homeroom','father','mother','counselor','special'];
+  const labels = {'homeroom':'班導','father':'父親','mother':'母親','counselor':'輔導老師','special':'特教老師'};
+  let result = [];
+  for(let i=0; i<roles.length; i++) {
+    let r = roles[i];
+    let el = document.getElementById(prefix + r);
+    if(el && el.checked) result.push(labels[r]);
+  }
+  const otherCheck = document.getElementById(prefix+'other');
+  if (otherCheck && otherCheck.checked) {
+    const txtEl = document.getElementById(prefix+'other-text');
+    const txt = txtEl ? txtEl.value.trim() : '';
+    if (txt) result.push(txt); else result.push('其他');
+  }
+  return result.join(', ');
+}
+
+function getCheckedProblems() {
+  let list = [];
+  let probRoutine = document.getElementById('prob-routine');
+  if (probRoutine && probRoutine.checked) {
+    let subInfo = "違反生活常規";
+    let subs = [];
+    let lazy = document.getElementById('prob-sub-lazy');
+    if (lazy && lazy.checked) subs.push("打掃消極");
+    let otherRoutine = document.getElementById('prob-sub-routine-other');
+    if (otherRoutine && otherRoutine.checked) {
+      let textEl = document.getElementById('prob-sub-routine-text');
+      let text = textEl ? textEl.value.trim() : "";
+      subs.push(text ? text : "其他常規問題");
+    }
+    if(subs.length) subInfo += " (" + subs.join(', ') + ")";
+    list.push(subInfo);
+  }
+  
+  let probRules = document.getElementById('prob-rules');
+  if (probRules && probRules.checked) {
+    let textEl = document.getElementById('prob-sub-rules-text');
+    let text = textEl ? textEl.value.trim() : "";
+    list.push("違反校規: " + (text ? text : '未指明'));
+  }
+  
+  let probBehavior = document.getElementById('prob-behavior');
+  if (probBehavior && probBehavior.checked) {
+    let subInfo = "不當行為";
+    let subs = [];
+    let gender = document.getElementById('prob-sub-gender');
+    if (gender && gender.checked) subs.push("性平爭議");
+    let injury = document.getElementById('prob-sub-injury');
+    if (injury && injury.checked) subs.push("自傷");
+    let suicide = document.getElementById('prob-sub-suicide');
+    if (suicide && suicide.checked) subs.push("自殺傾向");
+    let otherBehavior = document.getElementById('prob-sub-behavior-other');
+    if (otherBehavior && otherBehavior.checked) {
+      let textEl = document.getElementById('prob-sub-behavior-text');
+      let text = textEl ? textEl.value.trim() : "";
+      subs.push(text ? text : "其他不當行為");
+    }
+    if(subs.length) subInfo += " (" + subs.join(', ') + ")";
+    list.push(subInfo);
+  }
+  
+  let conflict = document.getElementById('prob-conflict');
+  if (conflict && conflict.checked) list.push("人際衝突");
+  let family = document.getElementById('prob-family');
+  if (family && family.checked) list.push("親子關係");
+  
+  return list.join('; ');
+}
+
+function initHashtags() {
+  document.querySelectorAll('.hashtag-container').forEach(container => {
+    const targetId = container.getAttribute('data-target');
+    const tagsStr = container.getAttribute('data-tags');
+    if (!tagsStr) return;
+    const tags = tagsStr.split(',');
+    container.innerHTML = tags.map(tag => `<span class="hashtag-pill">#${tag}</span>`).join('');
+    
+    container.querySelectorAll('.hashtag-pill').forEach(pill => {
+      pill.onclick = function() {
+        const input = document.getElementById(targetId);
+        if (input) {
+          const space = input.value.length > 0 ? ' ' : '';
+          input.value += space + pill.textContent;
+          input.focus();
+        }
+      };
+    });
+  });
+}
+
+function getSemesterByDate(dateString) {
+  if (!dateString) return 'unknown';
+  const d = new Date(dateString);
+  for (let key in semesterSettings) {
+    const start = new Date(semesterSettings[key].start);
+    const end = new Date(semesterSettings[key].end);
+    if (d >= start && d <= end) return key;
+  }
+  return 'other';
+}
+
+function renderSemesterSettings() {
+  const container = document.getElementById('semester-settings-container');
+  if (!container) return;
+  const semNames = { '7-1':'七年級 上學期','7-2':'七年級 下學期','8-1':'八年級 上學期','8-2':'八年級 下學期','9-1':'九年級 上學期','9-2':'九年級 下學期' };
+  
+  let htmlStr = '';
+  for(let key in semesterSettings) {
+    htmlStr += `<div style="margin-bottom:12px">
+      <label class="form-label" style="color:var(--text); font-weight:700">${semNames[key]}</label>
+      <div style="display:flex; gap:8px; align-items:center">
+        <input class="form-input" type="date" id="set-start-${key}" value="${semesterSettings[key].start}">
+        <span style="font-size:12px; color:var(--text-muted)">至</span>
+        <input class="form-input" type="date" id="set-end-${key}" value="${semesterSettings[key].end}">
+      </div>
+    </div>`;
+  }
+  container.innerHTML = htmlStr;
+  
+  const urlInput = document.getElementById('gas-url-input');
+  if (urlInput) urlInput.value = state.gasUrl || '';
+}
+
+function saveSettings() {
+  for (let key in semesterSettings) {
+    let sInput = document.getElementById(`set-start-${key}`);
+    let eInput = document.getElementById(`set-end-${key}`);
+    if(sInput) semesterSettings[key].start = sInput.value;
+    if(eInput) semesterSettings[key].end = eInput.value;
+  }
+  const gasInput = document.getElementById('gas-url-input');
+  if(gasInput) {
+    state.gasUrl = gasInput.value.trim();
+    try { localStorage.setItem('big_hand_gas_url', state.gasUrl); } catch(e) {}
+  }
+  showToast('⚙️ 所有設定與雲端網址已更新！');
+  goTo('screen-home');
+}
+
+function formatStudentDataText(student, targetSem) {
+  let res = `【大手拉小手師生管理系統 - 學生紀錄分享】\n`;
+  res += `學生：${student.name} (座號: ${String(student.num).padStart(2,'0')})\n`;
+  res += `查詢學期：${targetSem === 'all' ? '全部紀錄總覽' : targetSem + ' 學期'}\n`;
+  res += `------------------------------------\n\n`;
+
+  const filterSem = (rec) => {
+    if (targetSem === 'all') return true;
+    return getSemesterByDate(rec.date) === targetSem;
+  };
+
+  let pr = (student.parentRecords || []).filter(filterSem);
+  res += `💬 【家長對話紀錄】 (${pr.length}筆)\n`;
+  if(!pr.length) res += `  暫無資料\n`;
+  else {
+    pr.forEach((r, i) => {
+      res += `  [${i+1}] 日期:${r.date} ${r.time}\n       主旨:${r.subject}\n       角色:${r.roles}\n       內容:${r.content}\n       結論:${r.conclusion}\n`;
+    });
+  }
+  res += `\n`;
+
+  let ir = (student.interactionRecords || []).filter(filterSem);
+  res += `📚 【學生互動紀錄】 (${ir.length}筆)\n`;
+  if(!ir.length) res += `  暫無資料\n`;
+  else {
+    ir.forEach((r, i) => {
+      let typeStr = r.type === 'study' ? `學習 [${r.subjects}]` : `生活`;
+      res += `  [${i+1}] 日期:${r.date} ${r.time} (${typeStr})\n       主旨:${r.subject}\n`;
+      if(r.problems) res += `       問題類型:${r.problems}\n`;
+      res += `       內容:${r.content}\n       結論:${r.conclusion}\n`;
+    });
+  }
+  res += `\n`;
+
+  let or = (student.otherRecords || []).filter(filterSem);
+  res += `⭐ 【其他表現紀錄】 (${or.length}筆)\n`;
+  if(!or.length) res += `  暫無資料\n`;
+  else {
+    or.forEach((r, i) => {
+      res += `  [${i+1}] 日期:${r.date} ${r.time}\n       主旨:${r.subject}\n       描述:${r.content}\n       結論:${r.conclusion}\n`;
+    });
+  }
+  return res;
+}
+
+function shareToLine() {
+  if (!state.current) return;
+  const targetSem = document.getElementById('export-semester-select').value;
+  const textOutput = formatStudentDataText(state.current, targetSem);
+  navigator.clipboard.writeText(textOutput).then(() => {
+    showToast('🟢 已複製 LINE 格式文字！可直接貼上');
+  }).catch(err => {
+    alert('複製失敗，請手動複製：\n\n' + textOutput);
+  });
+}
+
+function exportJSONData() {
+  if (!state.current) return;
+  const targetSem = document.getElementById('export-semester-select').value;
+  const filterSem = (rec) => {
+    if (targetSem === 'all') return true;
+    return getSemesterByDate(rec.date) === targetSem;
+  };
+
+  let backupData = {
+    exportTime: new Date().toLocaleString(),
+    semesterScope: targetSem,
+    studentInfo: { id: state.current.id, num: state.current.num, name: state.current.name },
+    parentRecords: (state.current.parentRecords || []).filter(filterSem),
+    interactionRecords: (state.current.interactionRecords || []).filter(filterSem),
+    otherRecords: (state.current.otherRecords || []).filter(filterSem)
+  };
+
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+  const dlAnchorElem = document.createElement('a');
+  dlAnchorElem.setAttribute("href", dataStr);
+  dlAnchorElem.setAttribute("download", `學生_${state.current.name}_學期_${targetSem}_備份.json`);
+  dlAnchorElem.click();
+  showToast('💾 JSON 檔案匯出成功！');
+}
+
+function clearParentForm() {
+  ['parent-subject','parent-content','parent-conclusion','parent-followup'].forEach(id=>{
+    let el = document.getElementById(id); if(el) el.value='';
+  });
+  ['role-homeroom','role-father','role-mother','role-counselor','role-special','role-other'].forEach(id=>{
+    let el = document.getElementById(id); if(el) el.checked=false;
+  });
+  const oTxt = document.getElementById('role-other-text'); if(oTxt) oTxt.value='';
+  const now=new Date(); 
+  document.getElementById('parent-date').value = now.toISOString().slice(0,10); 
+  document.getElementById('parent-time').value = now.toTimeString().slice(0,5);
+}
+
+function clearInterForm() {
+  ['inter-subject','inter-content','inter-conclusion','inter-followup'].forEach(id=>{
+    let el = document.getElementById(id); if(el) el.value='';
+  });
+  ['sub-chinese','sub-english','sub-math','sub-science','sub-social','sub-pe','sub-art','sub-music','sub-other','prob-routine','prob-sub-lazy','prob-sub-routine-other','prob-rules','prob-behavior','prob-sub-gender','prob-sub-injury','prob-sub-suicide','prob-sub-behavior-other','prob-conflict','prob-family','irole-homeroom','irole-father','irole-mother','irole-counselor','irole-special','irole-other'].forEach(id=>{
+    let el = document.getElementById(id); if(el) el.checked=false;
+  });
+  ['sub-other-text','prob-sub-routine-text','prob-sub-rules-text','prob-sub-behavior-text','irole-other-text'].forEach(id => {
+    let el = document.getElementById(id); if(el) el.value='';
+  });
+  
+  toggleSubIndent('sub-routine-group', false);
+  toggleSubIndent('sub-rules-group', false);
+  toggleSubIndent('sub-behavior-group', false);
+  
+  const now=new Date(); 
+  document.getElementById('inter-date').value = now.toISOString().slice(0,10); 
+  document.getElementById('inter-time').value = now.toTimeString().slice(0,5);
+  setInteractionType('study');
+}
+
+function clearOtherForm() {
+  ['other-subject','other-content','other-conclusion','other-followup'].forEach(id=>{
+    let el = document.getElementById(id); if(el) el.value='';
+  });
+  const now=new Date(); 
+  document.getElementById('other-date').value = now.toISOString().slice(0,10); 
+  document.getElementById('other-time').value = now.toTimeString().slice(0,5);
+}
+
+function saveParentRecord() {
+  if (!state.current) return;
+  const rec = {
+    date: document.getElementById('parent-date').value,
+    time: document.getElementById('parent-time').value,
+    subject: document.getElementById('parent-subject').value,
+    roles: getCheckedRoles('role-'),
+    content: document.getElementById('parent-content').value,
+    conclusion: document.getElementById('parent-conclusion').value,
+    followup: document.getElementById('parent-followup').value,
+  };
+  if(!state.current.parentRecords) state.current.parentRecords = [];
+  state.current.parentRecords.push(rec);
+  syncToGoogleSheet('parent', rec);
+  renderStudentList();
+  renderPreviewRecords();
+  showToast('✓ 家長對話紀錄已儲存！');
+  setTimeout(()=>goTo('screen-student'), 300);
+}
+
+function saveInteractionRecord() {
+  if (!state.current) return;
+  const subNames = ['chinese','english','math','science','social','pe','art','music'];
+  const subMap = {'chinese':'國文','english':'英文','math':'數學','science':'自然','social':'社會','pe':'體育','art':'美術','music':'音樂'};
+  let subjectsArr = [];
+  for(let i=0; i<subNames.length; i++) {
+    let el = document.getElementById('sub-' + subNames[i]);
+    if(el && el.checked) subjectsArr.push(subMap[subNames[i]]);
+  }
+  const otherSub = document.getElementById('sub-other');
+  if (otherSub && otherSub.checked) {
+    const tEl = document.getElementById('sub-other-text');
+    const t = tEl ? tEl.value.trim() : "";
+    if(t) subjectsArr.push(t);
+  }
+  
+  const rec = {
+    type: state.interType,
+    date: document.getElementById('inter-date').value,
+    time: document.getElementById('inter-time').value,
+    subjects: state.interType === 'study' ? subjectsArr.join(', ') : '',
+    problems: state.interType === 'life' ? getCheckedProblems() : '',
+    roles: state.interType === 'study' ? getCheckedRoles('irole-') : '', // 只有學習會搜集角色，生活已在UI與資料面徹底拔除
+    subject: document.getElementById('inter-subject').value,
+    content: document.getElementById('inter-content').value,
+    conclusion: document.getElementById('inter-conclusion').value,
+    followup: document.getElementById('inter-followup').value,
+  };
+  
+  if(!state.current.interactionRecords) state.current.interactionRecords = [];
+  state.current.interactionRecords.push(rec);
+  syncToGoogleSheet('interaction', rec);
+  renderStudentList(); renderPreviewRecords();
+  showToast('✓ 學生互動紀錄已儲存！');
+  setTimeout(()=>goTo('screen-student'), 300);
+}
+
+function saveOtherRecord() {
+  if (!state.current) return;
+  const rec = {
+    date: document.getElementById('other-date').value,
+    time: document.getElementById('other-time').value,
+    subject: document.getElementById('other-subject').value,
+    content: document.getElementById('other-content').value,
+    conclusion: document.getElementById('other-conclusion').value,
+    followup: document.getElementById('other-followup').value,
+  };
+  if(!state.current.otherRecords) state.current.otherRecords = [];
+  state.current.otherRecords.push(rec);
+  syncToGoogleSheet('other', rec);
+  renderStudentList(); renderPreviewRecords();
+  showToast('✓ 其他表現已儲存！');
+  setTimeout(()=>goTo('screen-student'), 300);
+}
+
+// ----- 核心資料初始化 -----
+function initSystem() {
+  initHashtags();
+  
+  try {
+    const savedUrl = localStorage.getItem('big_hand_gas_url');
+    if (savedUrl) state.gasUrl = savedUrl;
+  } catch(e) {}
+  
+  const subOtherEl = document.getElementById('sub-other');
+  if (subOtherEl) {
+    subOtherEl.addEventListener('change', function(){
+      const txt = document.getElementById('sub-other-text');
+      if(txt) txt.style.display = this.checked ? '' : 'none';
+    });
+  }
+  
+  // 4 位測試學生名單與情境模擬內容
+  state.students = [
+    {
+      id: 1001, num: 1, name: '魏一彤', photo: null, 
+      parentRecords: [
+        { date: '2026-06-01', time: '08:30', subject: '遲到狀況討論 #常規問題', content: '一彤最近連續三天遲到，與媽媽聯繫了解狀況。 #遲到早退' }
+      ],
+      interactionRecords: [
+        { type: 'study', date: '2026-06-02', time: '10:00', subject: '小考滿分', content: '今天國文默寫全對，字體也非常工整。' }
+      ],
+      otherRecords: []
+    },
+    {
+      id: 1002, num: 2, name: '吳菁菁', photo: null, 
+      parentRecords: [],
+      interactionRecords: [
+        { type: 'life', date: '2026-06-05', time: '12:40', subject: '午休座位爭執 #午休口角', content: '因為換座位的事情跟同學起口角。 #與同學起衝突' }
+      ],
+      otherRecords: [
+        { date: '2026-05-28', time: '14:00', subject: '校慶海報設計優異 #美術獲獎', content: '擔任學藝股長，設計班級海報獲第三名。' }
+      ]
+    },
+    {
+      id: 1003, num: 3, name: '張大山', photo: null, // 修正：因應使用者更換名單，調整第三位為簡大笙
+      name: '簡大笙',
+      parentRecords: [],
+      interactionRecords: [
+        { type: 'study', date: '2026-06-03', time: '08:15', subject: '數學習作未交 #作業未交', content: '昨日數學習作未帶回家寫。' }
+      ],
+      otherRecords: []
+    },
+    {
+      id: 1004, num: 4, name: '曾小慶', photo: null, 
+      parentRecords: [],
+      interactionRecords: [
+        { type: 'life', date: '2026-06-09', time: '07:50', subject: '服裝儀容不整', content: '進校門時未紮衣服，已當場請其改善。' }
+      ],
+      otherRecords: []
+    }
+  ];
+  
+  renderStudentList();
+}
+
+window.onload = initSystem;
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('PWA Service Worker 註冊成功！'))
+    .catch(err => console.error('註冊失敗:', err));
+}
+</script>
+</body>
+</html>
